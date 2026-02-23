@@ -1,0 +1,130 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.table-img {
+    width: 150px;
+    height: auto;
+}
+
+.btn-light {
+    background-color: #c5c5c5;
+    color: #FFFFFF;
+    border-color: #c5c5c5;
+}
+
+.btn-secondary2{
+    background-color: #444444;
+    color: #FFFFFF;
+    border-color: #444444;
+}
+
+.btn-secondary2:hover {
+    background-color: #363636;
+    color: #FFFFFF;
+    border-color: #363636;
+}
+
+.btn-light:hover {
+    background-color: #444444;
+    color: #FFFFFF;
+    border-color: #444444;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.dashboard-container {
+    max-width: 640px;
+    margin: 12px auto;        
+    display: flex;
+    flex-direction: column;
+    gap: 8px;                
+    text-align: center;
+    padding: 6px;
+}
+
+
+.dashboard-group h2 {
+    margin: 10px 0 14px 0;  
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+
+.dashboard-buttons {
+    margin-top: 25px; 
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.dashboard-buttons a {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 260px;         
+    padding: 50px 20px;    
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.dashboard-buttons i {
+    font-size: 3rem;       
+    margin-bottom: 12px;
+    display: block;
+}
+
+
+.dashboard-buttons p {
+    margin: 0;
+    line-height: 1;
+}
+
+
+@media (min-width: 768px) {
+    .dashboard-buttons {
+        grid-template-columns: repeat(2, auto); 
+        column-gap: 8px;    /* espaço horizontal pequeno entre os dois botões */
+        row-gap: 6px;       /* espaço vertical menor */
+    }
+
+    /* reduzir gap vertical entre grupos se quiser ainda mais compacto */
+    .dashboard-container {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 770px) {  
+    th {
+        font-size: 12px;
+    }
+    td {
+        font-size: 11px;
+    }
+    .hide {
+        display: none;
+    }
+    .avisoes {
+        width: 100px;
+    }
+}
