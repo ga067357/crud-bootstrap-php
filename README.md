@@ -103,59 +103,6 @@ crud-bootstrap-php/
 └── README_PT.md             # Este arquivo
 ```
 
-## 🔧 Instalação
-
-1. Clone o repositório:
-    ```bash
-    git clone https://github.com/ga067357/crud-bootstrap-php.git
-    ```
-
-2. Navegue até o diretório do projeto:
-    ```bash
-    cd crud-bootstrap-php
-    ```
-
-3. Importe o arquivo `database.sql` no seu banco de dados MySQL:
-    ```bash
-    mysql -u seu_usuario -p seu_banco < database.sql
-    ```
-
-4. Configure a conexão com o banco de dados no arquivo `config.php`:
-    ```php
-    define('DB_HOST', 'localhost');
-    define('DB_USER', 'seu_usuario');
-    define('DB_PASS', 'sua_senha');
-    define('DB_NAME', 'seu_banco');
-    ```
-
-5. Execute a aplicação em um servidor PHP:
-    ```bash
-    php -S localhost:8000
-    ```
-
-## 💻 Como Usar
-
-- Acesse a aplicação no navegador em `http://localhost:8000`
-- Na página inicial, faça login com uma das credenciais fornecidas
-- Navegue pelos módulos usando o menu lateral
-- Execute as operações de CRUD conforme suas permissões
-
-## 📝 Fluxo de Autenticação
-
-1. Usuário acessa a página de login
-2. Sistema valida as credenciais no banco de dados
-3. Se válido, cria uma sessão de usuário
-4. Em cada página, verifica o tipo de usuário (Admin/Comum)
-5. Exibe ou restringe funcionalidades baseado no nível de acesso
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
-
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT.
-
 ---
 
 **Desenvolvido com ❤️ para a disciplina de Desenvolvimento Web**
