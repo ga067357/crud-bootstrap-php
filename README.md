@@ -18,8 +18,8 @@ Projeto desenvolvido para a disciplina de Desenvolvimento Web, com foco em criar
 
 ## 👥 Dupla
 
-- Nome do Aluno 1
-- Nome do Aluno 2
+- Gabriel Henrique Silva Guimarães
+- Douglas Morães Braz
 
 ## 📋 Funcionalidades
 
