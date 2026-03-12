@@ -4,17 +4,17 @@ Projeto desenvolvido para a disciplina de Desenvolvimento Web, com foco em criar
 
 ## 🚀 Acesso ao Projeto
 
-**Link para acesso:** [INSERIR LINK DO PROJETO AQUI]
+**Link para acesso:** [amirteste.lovestoblog.com]
 
 ### 👥 Credenciais de Acesso
 
 **Usuário Admin:**
-- Login: admin@admin.com
+- Login: admin
 - Senha: admin123
 
 **Usuário Comum:**
-- Login: usuario@usuario.com
-- Senha: usuario123
+- Login: douglas
+- Senha: user123
 
 ## 👥 Dupla
 
