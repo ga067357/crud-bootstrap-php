@@ -105,4 +105,4 @@ crud-bootstrap-php/
 
 ---
 
-**Desenvolvido com ❤️ para a disciplina de Desenvolvimento Web**
+**Desenvolvido para a disciplina de Programação Web**
