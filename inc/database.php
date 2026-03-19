@@ -1,26 +1,31 @@
 <?php
-mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
 
 /* ============================================================
-   📌 ABRE CONEXÃO
+   📌 ABRE CONEXÃO (PDO)
    ============================================================ */
 function open_database() {
     try {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-        $conn->set_charset("utf8mb4");
-        return $conn;
-    } catch (Exception $e) {
+        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+
+        return new PDO($dsn, DB_USER, DB_PASSWORD, $options);
+
+    } catch (PDOException $e) {
         echo "Erro ao conectar: " . $e->getMessage();
         return null;
     }
 }
 
 /* ============================================================
-   📌 FECHA CONEXÃO
+   📌 FECHA CONEXÃO (PDO)
    ============================================================ */
 function close_database($conn) {
     try {
-        mysqli_close($conn);
+        $conn = null;
     } catch (Exception $e) {
         echo $e->getMessage();
     }
@@ -35,20 +40,19 @@ function find($table = null, $id = null) {
 
     try {
         if ($id) {
-            $stmt = $database->prepare("SELECT * FROM {$table} WHERE id = ?");
-            $stmt->bind_param('i', $id);
+            $stmt = $database->prepare("SELECT * FROM {$table} WHERE id = :id");
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            $found = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
+            $found = $stmt->fetch();
 
         } else {
-            $result = $database->query("SELECT * FROM {$table}");
-
-            if ($result->num_rows > 0) {
-                $found = $result->fetch_all(MYSQLI_ASSOC);
+            $stmt = $database->query("SELECT * FROM {$table}");
+            $rows = $stmt->fetchAll();
+            if ($rows) {
+                $found = $rows;
             }
         }
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION['message'] = $e->getMessage();
         $_SESSION['type'] = 'danger';
     }
@@ -70,13 +74,13 @@ function filter($table, $conditions) {
 
     try {
         $sql = "SELECT * FROM {$table} WHERE {$conditions}";
-        $result = $database->query($sql);
-
-        if ($result->num_rows > 0) {
-            $found = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt = $database->query($sql);
+        $rows = $stmt->fetchAll();
+        if ($rows) {
+            $found = $rows;
         }
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION['message'] = "Erro no filtro: " . $e->getMessage();
         $_SESSION['type'] = "danger";
     }
@@ -95,28 +99,29 @@ function find_where($table, $conditions = []) {
     try {
         $sql = "SELECT * FROM {$table} WHERE ";
         $params = [];
-        $types = "";
+        $i = 0;
 
         foreach ($conditions as $col => $val) {
-            $sql .= "{$col} = ? AND ";
-            $params[] = $val;
-
-            $types .= is_numeric($val) ? "i" : "s";
+            $ph = ":{$col}_{$i}";
+            $sql .= "{$col} = {$ph} AND ";
+            $params[$ph] = $val;
+            $i++;
         }
 
         $sql = rtrim($sql, "AND ");
 
         $stmt = $database->prepare($sql);
 
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
+        foreach ($params as $ph => $val) {
+            $type = is_numeric($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue($ph, $val, $type);
         }
 
         $stmt->execute();
-        $found = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        $found = $stmt->fetchAll();
+        $stmt->closeCursor();
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION["message"] = "Erro ao buscar: " . $e->getMessage();
         $_SESSION["type"] = "danger";
     }
@@ -131,17 +136,23 @@ function find_where($table, $conditions = []) {
 function save($table = null, $data = null) {
     $database = open_database();
 
-    $columns = implode(",", array_keys($data));
-    $values  = "'" . implode("','", array_map('addslashes', array_values($data))) . "'";
+    $columns = array_keys($data);
+    $placeholders = array_map(function($c){ return ':' . $c; }, $columns);
 
-    $sql = "INSERT INTO {$table} ({$columns}) VALUES ({$values})";
+    $sql = "INSERT INTO {$table} (" . implode(',', $columns) . ") VALUES (" . implode(',', $placeholders) . ")";
 
     try {
-        $database->query($sql);
+        $stmt = $database->prepare($sql);
+        foreach ($data as $col => $val) {
+            $type = is_numeric($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(':' . $col, $val, $type);
+        }
+        $stmt->execute();
+
         $_SESSION["message"] = "Registro cadastrado com sucesso.";
         $_SESSION["type"] = "success";
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION["message"] = "Erro ao cadastrar: " . $e->getMessage();
         $_SESSION["type"] = "danger";
     }
@@ -155,20 +166,26 @@ function save($table = null, $data = null) {
 function update($table = null, $id = 0, $data = null) {
     $database = open_database();
 
-    $items = "";
+    $items = [];
     foreach ($data as $key => $value) {
-        $items .= "{$key}='" . addslashes($value) . "',";
+        $items[] = "{$key} = :{$key}";
     }
-    $items = rtrim($items, ",");
 
-    $sql = "UPDATE {$table} SET {$items} WHERE id={$id}";
+    $sql = "UPDATE {$table} SET " . implode(',', $items) . " WHERE id = :id";
 
     try {
-        $database->query($sql);
+        $stmt = $database->prepare($sql);
+        foreach ($data as $col => $val) {
+            $type = is_numeric($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(':' . $col, $val, $type);
+        }
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
         $_SESSION['message'] = "Registro atualizado com sucesso.";
         $_SESSION['type'] = "success";
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION['message'] = "Erro ao atualizar: " . $e->getMessage();
         $_SESSION['type'] = "danger";
     }
@@ -184,16 +201,15 @@ function remove($table = null, $id = null) {
 
     try {
         if ($id) {
-            $stmt = $database->prepare("DELETE FROM {$table} WHERE id = ?");
-            $stmt->bind_param('i', $id);
+            $stmt = $database->prepare("DELETE FROM {$table} WHERE id = :id");
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            $stmt->close();
 
             $_SESSION['message'] = "Registro removido com sucesso.";
             $_SESSION['type'] = 'success';
         }
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $_SESSION['message'] = $e->getMessage();
         $_SESSION['type'] = 'danger';
     }
