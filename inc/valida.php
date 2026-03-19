@@ -54,21 +54,23 @@ if (isset($_POST['login']) && isset($_POST['senha'])) {
 
     try {
         $usuario = $_POST['login'];
-        $senha = md5($_POST['senha']);
+        $senha = criptografia($_POST['senha']);
 
-        $sql = "SELECT id, nome, user, password, nivel 
+        $sql = "SELECT id, nome, user, password, nivel
                 FROM usuarios
-                WHERE user = '{$usuario}'
-                  AND password = '{$senha}'
+                WHERE user = :user
+                  AND password = :password
                 LIMIT 1";
 
         $bd = open_database();
-        $query = $bd->query($sql);
+        $stmt = $bd->prepare($sql);
+        $stmt->bindValue(':user', $usuario, PDO::PARAM_STR);
+        $stmt->bindValue(':password', $senha, PDO::PARAM_STR);
+        $stmt->execute();
 
-        if ($query->num_rows === 1) {
+        $dados = $stmt->fetch();
 
-            $dados = $query->fetch_assoc();
-
+        if ($dados) {
             $_SESSION['id']    = $dados['id'];
             $_SESSION['nome']  = $dados['nome'];
             $_SESSION['user']  = $dados['user'];
@@ -79,13 +81,11 @@ if (isset($_POST['login']) && isset($_POST['senha'])) {
 
             header("Location: " . BASEURL . "index.php");
             exit;
-
         } else {
             throw new Exception("Usuário ou senha inválidos.");
         }
 
     } catch (Exception $e) {
-
         $_SESSION['message'] = "Erro: " . $e->getMessage();
         $_SESSION['type'] = "danger";
 
